@@ -17,6 +17,9 @@ import android.util.Log;
 import androidx.annotation.Nullable;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationManagerCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
+
+import com.google.gson.Gson;
 
 public class LocationService extends Service {
 
@@ -64,11 +67,24 @@ public class LocationService extends Service {
         @Override
         public void secondly(int repeatsRemaining) {
             Log.d("pttt", "C=" + counter++);
+
+            newLocationDetected();
         }
 
         @Override
         public void done() { }
     };
+
+    private void newLocationDetected() {
+        Intent intent = new Intent(MainActivity.BROADCAST_NEW_LOCATION_DETECTED);
+        intent.putExtra("EXTRA_LOCATION", counter);
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+
+
+        notificationBuilder.setContentText("" + counter);
+        final NotificationManager notificationManager = (NotificationManager) getSystemService(Service.NOTIFICATION_SERVICE);
+        notificationManager.notify(NOTIFICATION_ID, notificationBuilder.build());
+    }
 
     private void stopRecording() {
         MyClockTickerV4.getInstance().removeCallback(cycleTicker);

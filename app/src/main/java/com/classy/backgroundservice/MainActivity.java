@@ -4,11 +4,14 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.localbroadcastmanager.content.LocalBroadcastManager;
 
 import android.Manifest;
 import android.app.ActivityManager;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.os.Build;
@@ -19,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.google.android.material.button.MaterialButton;
+import com.google.gson.Gson;
 import com.paz.accesstolib.GiveMe;
 import com.paz.accesstolib.GrantListener;
 
@@ -28,12 +32,21 @@ import com.classy.backgroundservice.PathImageGenerator.LatLng;
 
 public class MainActivity extends AppCompatActivity {
 
+    public static final String BROADCAST_NEW_LOCATION_DETECTED = "com.class.background.NEW_LOCATION_DETECTED";
+
     MaterialButton main_BTN_permission1;
     MaterialButton main_BTN_permission2;
     MaterialButton main_BTN_start;
     MaterialButton main_BTN_pause;
     MaterialButton main_BTN_stop;
     GiveMe giveMe;
+
+    private BroadcastReceiver myReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d("pttt", "onReceive" + intent.getIntExtra("EXTRA_LOCATION", -1));
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -149,6 +162,20 @@ public class MainActivity extends AppCompatActivity {
 
         Bitmap bitmap = PathImageGenerator.generatePath(latLngs);
         ((ImageView) findViewById(R.id.imageView)).setImageBitmap(bitmap);
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        IntentFilter intentFilter = new IntentFilter(BROADCAST_NEW_LOCATION_DETECTED);
+        LocalBroadcastManager.getInstance(this).registerReceiver(myReceiver, intentFilter);
+        registerReceiver(myReceiver, intentFilter);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(myReceiver);
     }
 
     private void findViews() {
